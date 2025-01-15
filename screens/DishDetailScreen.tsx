@@ -1,4 +1,4 @@
-import React from 'react';
+import React,  { useState, useEffect} from 'react';
 import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 
 //import cartcontext
@@ -8,10 +8,33 @@ const DishDetailScreen = ({ route, navigation }) => {
   //dish data are received through navigation
   const { dishText, dishDescription, dishAllergens, dishImage, dishPrice } = route.params;
   //access to the cart
-  const { cartItems, addToCart } = useCart();
+  const { cartItems, addToCart, removeFromCart } = useCart();
 
-  //counting the number of item of this type of dish in the cart
-  const itemCount = cartItems.filter(item => item.dishText === dishText).length;
+  //local state for item count
+  const [itemCount, setItemCount ] = useState(0);
+
+  //initialize item count regarding current state
+  useEffect(() => {
+    const itemCount = cartItems.filter(item => item.dishText === dishText).length;
+    setItemCount(itemCount);
+  }, [cartItems, dishText]);
+
+  //add an item to the cart (and increment counter)
+  const handleIncrement = () => {
+    addToCart({ id: Date.now(), dishText, dishPrice });
+    setItemCount(prevCount => prevCount + 1);
+  };
+
+  //remove an item from the cart (and decrement counter)
+  const handleDecrement = () => {
+    if (itemCount > 0) {
+      const itemToRemove = cartItems.find(item => item.dishText === dishText);
+      if (itemToRemove) {
+        removeFromCart(itemToRemove);
+        setItemCount(prevCount => prevCount - 1);
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -30,18 +53,28 @@ const DishDetailScreen = ({ route, navigation }) => {
               <Text style={styles.dishAlergens}>Allergens : {dishAllergens}</Text>
           </View>
 
-          {/* lower part of the screen : price + button 'add to cart' */}
+          {/* lower part of the screen : price + (double button & counter) */}
           <View style={styles.lowerPagePart}>
             <View style={styles.priceContainer}>
-            <Text style={styles.priceLabel}>Price</Text>
-            <Text style={styles.priceValue}>$ {dishPrice}</Text>
+              <Text style={styles.priceLabel}>Price</Text>
+              <Text style={styles.priceValue}>$ {dishPrice}</Text>
             </View>
-            <TouchableOpacity
-              style={styles.addToCartButton}
-              onPress={() => addToCart({ id: Date.now(), dishText, dishPrice })}
-            >
-              <Text style={styles.addToCartButtonText}>Add to Cart {`(${itemCount})`}</Text>
-            </TouchableOpacity>
+
+            {/* Counter with (- 1 +) */}
+            <View style={styles.counterContainer}>
+              <View style={styles.priceContainer}>
+                <Text style={styles.orderLabel}>Order</Text>                
+                <View style={styles.cartaddingremoveContainer}>
+                  <TouchableOpacity style={styles.counterButton} onPress={handleDecrement}>
+                    <Text style={styles.counterButtonText}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.counterValue}>{itemCount}</Text>
+                  <TouchableOpacity style={styles.counterButton} onPress={handleIncrement}>
+                    <Text style={styles.counterButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -93,18 +126,6 @@ const styles = StyleSheet.create({
     marginTop : 30,
     color: '#555',
   },
-  addToCartButton: {
-    backgroundColor: '#909090',
-    borderRadius: 10,
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-  },
-  addToCartButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontFamily: 'Optima',
-  },
   lowerPagePart:{
     flexDirection:'row',
     justifyContent:'space-around',
@@ -119,6 +140,7 @@ const styles = StyleSheet.create({
   priceLabel: {
     fontSize: 16,
     color: '#555',
+    marginBottom : 15,
   },
   priceValue: {
     fontSize: 22,
@@ -128,5 +150,38 @@ const styles = StyleSheet.create({
   underImage:{
     flex:1,
     justifyContent:'space-between',
+  },
+  orderLabel:{
+    fontSize: 16,
+    color: '#555',
+    marginBottom : 15,
+    marginTop : 8,
+  },
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  counterButton: {
+    backgroundColor: '#ccc',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    marginHorizontal: 5,
+  },
+  counterButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  counterValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+    marginHorizontal: 8,
+    marginTop: 4,
+  },
+  cartaddingremoveContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   }
 });

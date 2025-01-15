@@ -13,8 +13,8 @@ export const CartProvider = ({ children }) => {
     };
 
     //delete a product from the cart
-    const removeFromCart = (item) => {
-        setCartItems(cartItems.filter(cartItem => cartItem.id !== item.id));
+    const removeFromCart = (itemToRemove) => {
+        setCartItems(cartItems.filter(cartItem => cartItem.id !== itemToRemove.id));
     };
 
     return (
