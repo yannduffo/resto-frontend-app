@@ -14,21 +14,12 @@ import ModalSelector from 'react-native-modal-selector';
 
 const BookScreen = ({ navigation }) => {
 
-  //infos for new booking
+  //states for new booking
   const [name, setName] = useState('');
   const [phonePrefix, setPhonePrefix] = useState('+33'); //default french prefix +33
   const [phone, setPhone] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('18h'); //default time 18h
-  //appointment list
-  const [appointments, setAppointments] = useState([]);
-  //editing state (for choosing between a PUT or a POST request)
-  const [isEditing, setIsEditing] = useState(false);
-
-  //load bookings and actialise on rendering
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
 
   //handler date selection
   const onDayPress = (day) => {
@@ -53,28 +44,14 @@ const BookScreen = ({ navigation }) => {
     { key: 6, label: '+91' }
   ];
 
-  // function to fetch appointments (using GET /bookings endpoint from API)
-  const fetchAppointments = async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:8080/bookings');
-      if (response.ok) {
-        const data = await response.json();
-        setAppointments(data);
-      } else {
-        throw new Error('Failed to load bookings');
-      }
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    }
-  };
-
-  // function to handle the booking submission or update
+  // function to handle the booking submission
   const handleBooking = async () => {
     if (!name || !phone || !selectedDate || !selectedTime) {
       Alert.alert('Please fill all the fields');
       return;
     }
 
+    //defining the struct appointmentData we will send to the API
     const appointmentData = {
       name,
       phonePrefix,
@@ -84,10 +61,9 @@ const BookScreen = ({ navigation }) => {
     };
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8080/bookings${isEditing ? `/${phone}` : ''}`,
+      const response = await fetch('http://127.0.0.1:8080/bookings',
         {
-          method: isEditing ? 'PUT' : 'POST', //regarding editing or creating a new booking we adapt the http request
+          method:'POST',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -96,53 +72,23 @@ const BookScreen = ({ navigation }) => {
       );
 
       if (response.ok) {
-        const message = isEditing ? 'Booking updated successfully' : 'Booking added successfully';
+        const message = await response.text();
         Alert.alert('Success', message);
-        fetchAppointments(); //refresh the list for renderring
         resetForm(); // calling reset form function
       } else {
-        throw new Error(isEditing ? 'Failed to update booking' : 'Failed to add booking');
+        throw new Error('Failed to add booking');
       }
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
 
-  // function to delete an appointment (using DELETE /bookings/{phone_number} endpoint from API)
-  const deleteAppointment = async (phoneNumber) => {
-    try {
-      const response = await fetch(`http://127.0.0.1:8080/bookings/${phoneNumber}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        Alert.alert('Success', 'Booking deleted successfully');
-        fetchAppointments(); // refresh the list for renderring
-      } else {
-        throw new Error('Failed to delete booking');
-      }
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    }
-  };
-
-  // function to start editing a booking
-  const editAppointment = (appointment) => {
-    setName(appointment.name);
-    setPhonePrefix(appointment.phonePrefix);
-    setPhone(appointment.phoneNumber);
-    setSelectedDate(appointment.date);
-    setSelectedTime(appointment.time);
-    setIsEditing(true);
-  };
-
-  // reset form function (after submission)
+  // reset form function (after submission) put every values back to default
   const resetForm = () => {
     setName('');
     setPhone('');
     setSelectedDate('');
     setSelectedTime('18h');
-    setIsEditing(false); //going back to isEditing false
   };
 
   return (
@@ -240,32 +186,6 @@ const BookScreen = ({ navigation }) => {
             <Text style={styles.submitButtonText}>Confirm appointment</Text>
         </TouchableOpacity>
 
-        {/* under title 'booking list'*/}
-        <View style={styles.orderPageHeader}>
-          <Text style={styles.headerUnderTitle}>Booking list</Text>
-        </View>
-
-        {/* printing the list of bookings */}
-        <View>
-          <FlatList
-            data={appointments}
-            keyExtractor={(item) => item.phoneNumber}
-            renderItem={({ item }) => (
-              <View style={styles.appointmentItem}>
-                {/* print booking infos */}
-                <Text>{`${item.name} - ${item.date} ${item.time}`}</Text>
-                {/* edit button */}
-                <TouchableOpacity onPress={() => editAppointment(item)}> {/* calling editAppoint func and passing in isEditing state true */}
-                  <Text>Edit</Text>
-                </TouchableOpacity>
-                {/* delete button */}
-                <TouchableOpacity onPress={() => deleteAppointment(item.phoneNumber)}>
-                  <Text>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

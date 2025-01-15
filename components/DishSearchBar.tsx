@@ -11,7 +11,7 @@ const DishSearchBar = ({ dishes, setFilteredDishes }) => {
 
         if (newText.trim().length >= 2) {
             const filtered = dishes.filter(dish =>
-            dish.DishText.toLowerCase().includes(newText.toLowerCase())
+            dish.title.toLowerCase().includes(newText.toLowerCase())
             );
             setFilteredDishes(filtered); //set the dishes variable with only filtered dishes
         } else {
