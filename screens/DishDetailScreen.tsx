@@ -42,6 +42,15 @@ const DishDetailScreen = ({ route, navigation }) => {
             <Text style={styles.backButtonText}>← Retour</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.cartButton} onPress={() => navigation.navigate('CartScreen')}>
+          <Image source={require('../images/icons/shopping-cart.png')} style={styles.cartIcon} />
+          {cartItems.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
         {/* image */}
         <Image source={dishImage} style={styles.dishImage} />
 
@@ -183,5 +192,37 @@ const styles = StyleSheet.create({
   cartaddingremoveContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-  }
+  },
+  cartButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    width: 50,
+    height: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  cartIcon: {
+    width: 30,
+    height: 30,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cartBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
 });

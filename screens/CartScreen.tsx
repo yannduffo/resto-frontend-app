@@ -13,7 +13,7 @@ const CartScreen = ({ navigation }) => {
 
     return (
     <SafeAreaView style={styles.container}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.navigate('OrderScreen')} style={styles.backButton}>
             <Text style={styles.backButtonText}>← Retour</Text>
         </TouchableOpacity>
 
